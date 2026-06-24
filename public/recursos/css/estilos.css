@@ -1916,6 +1916,14 @@ button {
     }
 }
 
+/* ── Nombre de usuario en el header ─────────────────────────────────────── */
+
+.nav-usuario {
+    color: var(--color-oscuro);
+    font-weight: 600;
+    font-size: 14px;
+}
+
 /* ── Mensajes de formulario ───────────────────────────────────────────────── */
 
 .mensaje {

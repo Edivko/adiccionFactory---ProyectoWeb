@@ -303,6 +303,23 @@ include("includes/header.php");
 
 </main>
 
+<script>
+(function () {
+    var inputFoto   = document.getElementById('foto_perfil');
+    var MAX_BYTES   = 5 * 1024 * 1024;
+
+    if (!inputFoto) return;
+
+    inputFoto.addEventListener('change', function () {
+        var archivo = this.files[0];
+        if (archivo && archivo.size > MAX_BYTES) {
+            alert('La fotografía no puede superar los 5 MB. Selecciona otra imagen.');
+            this.value = '';
+        }
+    });
+}());
+</script>
+
 <?php
 include("includes/footer.php");
 ?>

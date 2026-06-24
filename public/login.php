@@ -1,4 +1,32 @@
 <?php
+
+session_start();
+
+// Si ya hay sesión activa, redirigir al área correspondiente
+if (isset($_SESSION['id_usuario'])) {
+    $rutasPorRol = [
+        1 => '../comprador/index.php',
+        2 => '../vendedor/index.php',
+        3 => '../admin/dashboard.php',
+    ];
+    $idRol = (int) ($_SESSION['id_rol'] ?? 0);
+    if (isset($rutasPorRol[$idRol])) {
+        header('Location: ' . $rutasPorRol[$idRol]);
+        exit;
+    }
+}
+
+// Recuperar mensajes de sesión y limpiarlos de inmediato
+$errorLogin    = $_SESSION['error_login']    ?? '';
+$correoAnterior = $_SESSION['correo_login']  ?? '';
+$mensajeExito  = $_SESSION['mensaje_exito']  ?? '';
+
+unset(
+    $_SESSION['error_login'],
+    $_SESSION['correo_login'],
+    $_SESSION['mensaje_exito']
+);
+
 $tituloPagina = "Iniciar sesión | Adicción Factory Inmobiliaria";
 include("includes/header.php");
 ?>
@@ -26,8 +54,14 @@ include("includes/header.php");
                     <p>Ingresa tus datos para continuar.</p>
                 </div>
 
+                <?php if ($mensajeExito !== ''): ?>
+                    <div class="mensaje mensaje-exito">
+                        <?php echo htmlspecialchars($mensajeExito, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
+                <?php endif; ?>
+
                 <form
-                    action=""
+                    action="../procesos/procesar-login.php"
                     method="POST"
                     class="formulario"
                     autocomplete="on"
@@ -43,6 +77,7 @@ include("includes/header.php");
                             placeholder="ejemplo@correo.com"
                             maxlength="150"
                             autocomplete="email"
+                            value="<?php echo htmlspecialchars($correoAnterior, ENT_QUOTES, 'UTF-8'); ?>"
                             required
                         >
                     </div>
@@ -61,6 +96,12 @@ include("includes/header.php");
                             required
                         >
                     </div>
+
+                    <?php if ($errorLogin !== ''): ?>
+                        <div class="mensaje mensaje-error-general">
+                            <?php echo htmlspecialchars($errorLogin, ENT_QUOTES, 'UTF-8'); ?>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="login-opciones">
 
@@ -134,8 +175,8 @@ include("includes/header.php");
                     <strong>Seguridad</strong>
 
                     <p>
-                        La contraseña no se almacenará como texto visible.
-                        Posteriormente será protegida mediante un hash.
+                        Tu contraseña se almacena protegida mediante un hash
+                        y nunca se guarda como texto visible.
                     </p>
                 </div>
 
