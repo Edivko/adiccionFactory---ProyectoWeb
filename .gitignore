@@ -1,0 +1,12 @@
+config/conexion.php
+.env
+
+config/prueba-conexion.php
+
+public/recursos/uploads/vendedores/*
+!public/recursos/uploads/vendedores/.gitkeep
+
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+CLAUDE.md
