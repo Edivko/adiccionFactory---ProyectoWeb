@@ -1,4 +1,56 @@
 <?php
+
+session_start();
+require_once __DIR__ . '/../config/conexion.php';
+
+// ─── Leer y limpiar variables de sesión ──────────────────────────────────────
+
+$errores      = $_SESSION['errores_contacto']        ?? [];
+$datosPrevios = $_SESSION['datos_contacto']           ?? [];
+$errorGeneral = $_SESSION['error_general']            ?? '';
+$mensajeExito = $_SESSION['mensaje_exito_contacto']   ?? '';
+
+unset(
+    $_SESSION['errores_contacto'],
+    $_SESSION['datos_contacto'],
+    $_SESSION['error_general'],
+    $_SESSION['mensaje_exito_contacto']
+);
+
+// ─── Funciones de presentación ────────────────────────────────────────────────
+
+function val(array $datos, string $campo): string
+{
+    return htmlspecialchars($datos[$campo] ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+function errorCampo(array $errores, string $campo): string
+{
+    if (!isset($errores[$campo])) {
+        return '';
+    }
+    return '<small class="mensaje mensaje-error">'
+        . htmlspecialchars($errores[$campo], ENT_QUOTES, 'UTF-8')
+        . '</small>';
+}
+
+// ─── Obtener motivos del catálogo para el <select> ────────────────────────────
+
+$motivos = [];
+try {
+    $stmtMot = mysqli_prepare(
+        $conexion,
+        'SELECT id_motivo, nombre_motivo FROM MotivoContacto ORDER BY id_motivo ASC'
+    );
+    mysqli_stmt_execute($stmtMot);
+    $motivos = mysqli_fetch_all(mysqli_stmt_get_result($stmtMot), MYSQLI_ASSOC);
+    mysqli_stmt_close($stmtMot);
+} catch (mysqli_sql_exception $e) {
+    // Si falla la carga de motivos el formulario se muestra sin opciones
+}
+
+$motivoSeleccionado = $datosPrevios['motivo'] ?? '';
+
 $tituloPagina = "Contacto | Adicción Factory Inmobiliaria";
 include("includes/header.php");
 ?>
@@ -108,8 +160,20 @@ include("includes/header.php");
                     </p>
                 </div>
 
+                <?php if ($mensajeExito !== ''): ?>
+                    <div class="mensaje mensaje-exito">
+                        <?php echo htmlspecialchars($mensajeExito, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($errorGeneral !== ''): ?>
+                    <div class="mensaje mensaje-error-general">
+                        <?php echo htmlspecialchars($errorGeneral, ENT_QUOTES, 'UTF-8'); ?>
+                    </div>
+                <?php endif; ?>
+
                 <form
-                    action=""
+                    action="../procesos/procesar-contacto.php"
                     method="POST"
                     class="formulario"
                     autocomplete="on"
@@ -127,8 +191,10 @@ include("includes/header.php");
                                 placeholder="Ingresa tu nombre"
                                 maxlength="100"
                                 autocomplete="given-name"
+                                value="<?php echo val($datosPrevios, 'nombre'); ?>"
                                 required
                             >
+                            <?php echo errorCampo($errores, 'nombre'); ?>
                         </div>
 
                         <div class="campo">
@@ -141,8 +207,10 @@ include("includes/header.php");
                                 placeholder="Ingresa tu apellido"
                                 maxlength="100"
                                 autocomplete="family-name"
+                                value="<?php echo val($datosPrevios, 'apellido'); ?>"
                                 required
                             >
+                            <?php echo errorCampo($errores, 'apellido'); ?>
                         </div>
 
                         <div class="campo">
@@ -155,8 +223,10 @@ include("includes/header.php");
                                 placeholder="ejemplo@correo.com"
                                 maxlength="150"
                                 autocomplete="email"
+                                value="<?php echo val($datosPrevios, 'correo'); ?>"
                                 required
                             >
+                            <?php echo errorCampo($errores, 'correo'); ?>
                         </div>
 
                         <div class="campo">
@@ -170,7 +240,9 @@ include("includes/header.php");
                                 maxlength="20"
                                 pattern="[0-9+\s()-]{10,20}"
                                 autocomplete="tel"
+                                value="<?php echo val($datosPrevios, 'telefono'); ?>"
                             >
+                            <?php echo errorCampo($errores, 'telefono'); ?>
                         </div>
 
                         <div class="campo campo-completo">
@@ -182,25 +254,16 @@ include("includes/header.php");
                                 required
                             >
                                 <option value="">Selecciona una opción</option>
-                                <option value="informacion-inmueble">
-                                    Información sobre un inmueble
-                                </option>
-                                <option value="registro-comprador">
-                                    Ayuda con registro de comprador
-                                </option>
-                                <option value="registro-vendedor">
-                                    Ayuda con registro de vendedor
-                                </option>
-                                <option value="cita">
-                                    Información sobre citas
-                                </option>
-                                <option value="soporte">
-                                    Soporte general
-                                </option>
-                                <option value="otro">
-                                    Otro
-                                </option>
+                                <?php foreach ($motivos as $m): ?>
+                                    <option
+                                        value="<?php echo (int) $m['id_motivo']; ?>"
+                                        <?php echo (string) $motivoSeleccionado === (string) $m['id_motivo'] ? 'selected' : ''; ?>
+                                    >
+                                        <?php echo htmlspecialchars($m['nombre_motivo'], ENT_QUOTES, 'UTF-8'); ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
+                            <?php echo errorCampo($errores, 'motivo'); ?>
                         </div>
 
                         <div class="campo campo-completo">
@@ -212,8 +275,10 @@ include("includes/header.php");
                                 name="asunto"
                                 placeholder="Escribe el asunto del mensaje"
                                 maxlength="150"
+                                value="<?php echo val($datosPrevios, 'asunto'); ?>"
                                 required
                             >
+                            <?php echo errorCampo($errores, 'asunto'); ?>
                         </div>
 
                         <div class="campo campo-completo">
@@ -225,11 +290,12 @@ include("includes/header.php");
                                 placeholder="Escribe tu mensaje"
                                 maxlength="1500"
                                 required
-                            ></textarea>
+                            ><?php echo val($datosPrevios, 'mensaje'); ?></textarea>
 
                             <small class="ayuda">
                                 Máximo 1500 caracteres.
                             </small>
+                            <?php echo errorCampo($errores, 'mensaje'); ?>
                         </div>
 
                     </div>
@@ -247,6 +313,7 @@ include("includes/header.php");
                             al aviso de privacidad.
                         </span>
                     </label>
+                    <?php echo errorCampo($errores, 'acepta_privacidad'); ?>
 
                     <button
                         type="submit"

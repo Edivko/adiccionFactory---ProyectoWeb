@@ -1916,6 +1916,30 @@ button {
     }
 }
 
+/* ── Catálogo dinámico ───────────────────────────────────────────────────── */
+
+.sin-foto {
+    height: 230px;
+    background: var(--color-claro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sin-foto::after {
+    content: "Sin fotografía";
+    color: #aaa;
+    font-size: 13px;
+}
+
+.catalogo-sin-resultados {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-texto);
+    font-size: 16px;
+}
+
 /* ── Nombre de usuario en el header ─────────────────────────────────────── */
 
 .nav-usuario {
@@ -1954,4 +1978,9 @@ button {
     background: rgba(39, 174, 96, 0.08);
     border: 1px solid rgba(39, 174, 96, 0.25);
     color: #1e8449;
+}
+
+.detalle-sin-datos {
+    color: #999;
+    font-size: 14px;
 }
