@@ -11,7 +11,7 @@ if (!isset($tituloPagina)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $tituloPagina; ?></title>
 
-    <link rel="stylesheet" href="recursos/css/estilos.css">
+    <link rel="stylesheet" href="/public/recursos/css/estilos.css">
 </head>
 <body>
 
@@ -19,7 +19,7 @@ if (!isset($tituloPagina)) {
     <div class="contenedor header-contenido">
 
         <a href="index.php" class="logo">
-            <img src="recursos/img/logo.png" alt="Adicción Factory Inmobiliaria">
+            <img src="/public/recursos/img/logo.png" alt="Adicción Factory Inmobiliaria">
         </a>
 
         <nav class="nav">
