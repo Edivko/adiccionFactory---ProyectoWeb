@@ -2,6 +2,13 @@
 if (!isset($tituloPagina)) {
     $tituloPagina = "Adicción Factory Inmobiliaria";
 }
+
+// Iniciar sesión si no está activa, para que el header pueda leer $_SESSION
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$haySession = isset($_SESSION['id_usuario']);
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +16,7 @@ if (!isset($tituloPagina)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $tituloPagina; ?></title>
+    <title><?php echo htmlspecialchars($tituloPagina, ENT_QUOTES, 'UTF-8'); ?></title>
 
     <!-- Usando ../ para que sea compatible con todas las compus -->
     <link rel="stylesheet" href="../public/recursos/css/estilos.css">
@@ -25,11 +32,17 @@ if (!isset($tituloPagina)) {
         </a>
 
         <nav class="nav">
-            <!-- Nota: Si estos archivos están en la raíz, también llevan ../ -->
-            <a href="../public/index.php">Inicio</a>
-            <a href="../public/catalogo.php">Catálogo</a>
-            <a href="../public/contacto.php">Contacto</a>
-            <a href="../public/login.php" class="btn btn-secundario">Iniciar sesión</a>
+            <?php if ($haySession): ?>
+                <span class="nav-usuario">
+                    <?php echo htmlspecialchars($_SESSION['nombre'], ENT_QUOTES, 'UTF-8'); ?>
+                </span>
+                <a href="../procesos/cerrar-sesion.php" class="btn btn-secundario">Cerrar sesión</a>
+            <?php else: ?>
+                <a href="../public/index.php">Inicio</a>
+                <a href="../public/catalogo.php">Catálogo</a>
+                <a href="../public/contacto.php">Contacto</a>
+                <a href="../public/login.php" class="btn btn-secundario">Iniciar sesión</a>
+            <?php endif; ?>
         </nav>
 
     </div>

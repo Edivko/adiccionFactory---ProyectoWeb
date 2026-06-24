@@ -42,6 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     redirigir('../public/registro-vendedor.php');
 }
 
+// Si post_max_size fue superado, $_POST y $_FILES llegan vacíos con CONTENT_LENGTH > 0
+$contentLength = (int) ($_SERVER['CONTENT_LENGTH'] ?? 0);
+if ($contentLength > 0 && empty($_POST) && empty($_FILES)) {
+    $_SESSION['error_general'] = 'El archivo seleccionado es demasiado grande.';
+    redirigir('../public/registro-vendedor.php');
+}
+
 // ─── Constantes de catálogo (confirmadas en 02_datos_iniciales.sql) ───────
 // id_rol: 2 = vendedor | id_estado_cuenta: 1 = pendiente (requiere aprobación)
 
@@ -156,12 +163,18 @@ $archivoSubido = isset($_FILES['foto_perfil']) && $_FILES['foto_perfil']['error'
 if ($archivoSubido) {
     $archivo = $_FILES['foto_perfil'];
 
+    // UPLOAD_ERR_INI_SIZE y UPLOAD_ERR_FORM_SIZE significan que el archivo superó el límite
+    if ($archivo['error'] === UPLOAD_ERR_INI_SIZE || $archivo['error'] === UPLOAD_ERR_FORM_SIZE) {
+        $errores['foto_perfil'] = 'La fotografía no puede superar los 5 MB.';
+        volverConErrores($errores, $datosFormulario);
+    }
+
     if ($archivo['error'] !== UPLOAD_ERR_OK) {
         $errores['foto_perfil'] = 'Ocurrió un error al subir la fotografía. Inténtalo nuevamente.';
         volverConErrores($errores, $datosFormulario);
     }
 
-    // Tamaño máximo: 5 MB
+    // Doble verificación de tamaño: por si el límite de PHP es mayor a 5 MB
     if ($archivo['size'] > 5 * 1024 * 1024) {
         $errores['foto_perfil'] = 'La fotografía no puede superar los 5 MB.';
         volverConErrores($errores, $datosFormulario);
