@@ -104,7 +104,10 @@ button {
     text-align: center;
     cursor: pointer;
     border: none;
-    transition: 0.2s ease;
+    font-size: inherit;
+    line-height: inherit;
+    transition: background-color 0.2s ease, color 0.2s ease,
+        border-color 0.2s ease, transform 0.2s ease;
 }
 
 .btn-principal {
@@ -194,9 +197,17 @@ button {
 
 .formulario label,
 .form-busqueda label {
-    font-weight: 600;
-    font-size: 14px;
     color: var(--color-oscuro);
+    font-size: 14px;
+}
+
+.formulario label {
+    display: block;
+    font-weight: 700;
+}
+
+.form-busqueda label {
+    font-weight: 600;
 }
 
 .formulario input,
@@ -206,12 +217,25 @@ button {
 .form-busqueda select,
 .form-busqueda textarea {
     width: 100%;
-    padding: 12px 14px;
     border: 1px solid var(--color-borde);
     border-radius: 10px;
     font-size: 15px;
     outline: none;
-    transition: 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formulario input,
+.formulario select,
+.formulario textarea {
+    padding: 13px 14px;
+    background: var(--color-blanco);
+    color: var(--color-texto);
+}
+
+.form-busqueda input,
+.form-busqueda select,
+.form-busqueda textarea {
+    padding: 12px 14px;
 }
 
 .formulario input:focus,
@@ -227,6 +251,13 @@ button {
 .formulario textarea,
 .form-busqueda textarea {
     resize: vertical;
+}
+
+.formulario textarea {
+    min-height: 135px;
+}
+
+.form-busqueda textarea {
     min-height: 120px;
 }
 
@@ -296,7 +327,7 @@ button {
     border-radius: var(--radio);
     overflow: hidden;
     box-shadow: var(--sombra);
-    transition: 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover,
@@ -309,8 +340,7 @@ button {
     padding: 22px;
 }
 
-.card h3,
-.card-contenido h3 {
+.card h3 {
     color: var(--color-oscuro);
     font-size: 21px;
     margin-bottom: 10px;
@@ -432,9 +462,1401 @@ button {
     font-size: 14px;
 }
 
+/* PÁGINAS DE FORMULARIOS */
+
+.pagina-formulario {
+    background: var(--color-claro);
+}
+
+.encabezado-pagina {
+    background: var(--color-oscuro);
+    color: var(--color-blanco);
+    padding: 58px 0;
+    text-align: center;
+}
+
+.encabezado-pagina h1 {
+    font-size: clamp(34px, 4vw, 48px);
+    line-height: 1.15;
+    margin-bottom: 12px;
+}
+
+.encabezado-pagina p:last-child {
+    max-width: 680px;
+    margin: 0 auto;
+    color: #e8e1dd;
+}
+
+.contenedor-formulario {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
+    gap: 32px;
+    align-items: start;
+}
+
+.form-card {
+    background: var(--color-blanco);
+    padding: 34px;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.form-card-encabezado {
+    margin-bottom: 24px;
+}
+
+.form-card-encabezado h2 {
+    color: var(--color-oscuro);
+    font-size: 25px;
+    margin-bottom: 5px;
+}
+
+.form-card-encabezado p {
+    font-size: 14px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.campo {
+    display: grid;
+    gap: 7px;
+}
+
+.campo-completo {
+    grid-column: 1 / -1;
+}
+
+.formulario input[type="file"] {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.ayuda {
+    color: #777;
+    font-size: 12px;
+}
+
+.separador-formulario {
+    height: 1px;
+    background: var(--color-borde);
+    margin: 30px 0;
+}
+
+.opcion-check {
+    display: flex !important;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 24px 0;
+    cursor: pointer;
+}
+
+.opcion-check input {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    accent-color: var(--color-principal);
+    flex-shrink: 0;
+}
+
+.opcion-check span {
+    color: var(--color-texto);
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.texto-acceso,
+.aviso-formulario {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 14px;
+}
+
+.texto-acceso a {
+    color: var(--color-principal);
+    font-weight: 700;
+}
+
+.texto-acceso a:hover {
+    text-decoration: underline;
+}
+
+.aviso-formulario {
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: rgba(255, 222, 89, 0.26);
+    color: var(--color-oscuro);
+}
+
+.form-info {
+    position: sticky;
+    top: 120px;
+    background: var(--color-oscuro);
+    color: var(--color-blanco);
+    padding: 34px;
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.form-info-icono {
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 22px;
+    border-radius: 50%;
+    background: var(--color-secundario);
+    color: var(--color-oscuro);
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.form-info h2 {
+    font-size: 27px;
+    line-height: 1.2;
+    margin-bottom: 14px;
+}
+
+.form-info > p {
+    color: #e8e1dd;
+}
+
+.lista-beneficios {
+    list-style: none;
+    display: grid;
+    gap: 14px;
+    margin-top: 26px;
+}
+
+.lista-beneficios li {
+    position: relative;
+    padding-left: 28px;
+    color: #f4efec;
+}
+
+.lista-beneficios li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: var(--color-secundario);
+    font-weight: 800;
+}
+
+/* RESPONSIVE DE FORMULARIOS */
+
+@media (max-width: 900px) {
+    .contenedor-formulario {
+        grid-template-columns: 1fr;
+    }
+
+    .form-info {
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .encabezado-pagina {
+        padding: 45px 0;
+    }
+
+    .form-card,
+    .form-info {
+        padding: 24px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .campo-completo {
+        grid-column: auto;
+    }
+}
+
+/* LOGIN */
+
+.login-contenedor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.7fr);
+    gap: 32px;
+    align-items: start;
+    max-width: 950px;
+}
+
+.login-card {
+    width: 100%;
+}
+
+.login-opciones {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin: 4px 0 22px;
+}
+
+.opcion-check-login {
+    margin: 0;
+}
+
+.enlace-recuperacion {
+    color: var(--color-principal);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.enlace-recuperacion:hover {
+    text-decoration: underline;
+}
+
+.separador-texto {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 28px 0 20px;
+    color: #777;
+    font-size: 13px;
+    text-align: center;
+}
+
+.separador-texto::before,
+.separador-texto::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-borde);
+}
+
+.registro-opciones {
+    display: grid;
+    gap: 12px;
+}
+
+.login-info {
+    min-height: 100%;
+}
+
+.aviso-seguridad {
+    margin-top: 28px;
+    padding: 16px;
+    border: 1px solid rgba(255, 222, 89, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 222, 89, 0.10);
+}
+
+.aviso-seguridad strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-secundario);
+}
+
+.aviso-seguridad p {
+    color: #e8e1dd;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .login-contenedor {
+        grid-template-columns: 1fr;
+    }
+
+    .login-info {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .login-opciones {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* CATÁLOGO DE INMUEBLES */
+
+.encabezado-catalogo,
+.encabezado-detalle,
+.encabezado-vendedor,
+.encabezado-contacto {
+    text-align: left;
+}
+
+.encabezado-catalogo p:last-child,
+.encabezado-detalle p:last-child,
+.encabezado-vendedor p:last-child,
+.encabezado-contacto p:last-child {
+    margin: 0;
+}
+
+.catalogo-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+/* FILTROS */
+
+.filtros-card {
+    position: sticky;
+    top: 120px;
+    padding: 26px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.filtros-encabezado {
+    margin-bottom: 22px;
+}
+
+.filtros-encabezado h2 {
+    color: var(--color-oscuro);
+    font-size: 23px;
+    margin-bottom: 4px;
+}
+
+.filtros-encabezado p {
+    font-size: 14px;
+}
+
+.filtros-formulario {
+    gap: 17px;
+}
+
+.filtros-doble {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+/* RESULTADOS */
+
+.catalogo-resultados {
+    min-width: 0;
+}
+
+.catalogo-barra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 26px;
+}
+
+.catalogo-barra h2 {
+    color: var(--color-oscuro);
+    font-size: 27px;
+    margin-bottom: 2px;
+}
+
+.catalogo-barra p {
+    font-size: 14px;
+}
+
+.orden-formulario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.orden-formulario label {
+    color: var(--color-oscuro);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.orden-formulario select {
+    padding: 10px 34px 10px 12px;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    background: var(--color-blanco);
+    color: var(--color-texto);
+    cursor: pointer;
+    outline: none;
+}
+
+.orden-formulario select:focus {
+    border-color: var(--color-principal);
+    box-shadow: 0 0 0 3px rgba(233, 75, 39, 0.15);
+}
+
+/* GRID DEL CATÁLOGO */
+
+.catalogo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 26px;
+}
+
+.card-imagen {
+    position: relative;
+}
+
+.card-imagen img {
+    height: 230px;
+    object-fit: cover;
+}
+
+.estado-inmueble {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--color-secundario);
+    color: var(--color-oscuro);
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(33, 29, 29, 0.15);
+}
+
+/* PAGINACIÓN */
+
+.paginacion {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 38px;
+}
+
+.pagina {
+    min-width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    padding: 0 13px;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    background: var(--color-blanco);
+    color: var(--color-oscuro);
+    font-size: 14px;
+    font-weight: 700;
+    transition: 0.2s ease;
+}
+
+.pagina:hover,
+.pagina.activa {
+    border-color: var(--color-principal);
+    background: var(--color-principal);
+    color: var(--color-blanco);
+}
+
+.pagina.desactivada {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+/* RESPONSIVE DEL CATÁLOGO */
+
+@media (max-width: 1000px) {
+    .catalogo-layout {
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 24px;
+    }
+
+    .catalogo-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .catalogo-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros-card {
+        position: static;
+    }
+
+    .catalogo-barra {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .orden-formulario {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .orden-formulario select {
+        flex: 1;
+    }
+
+}
+
+@media (max-width: 480px) {
+    .filtros-doble {
+        grid-template-columns: 1fr;
+    }
+
+    .orden-formulario {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+/* DETALLE DEL INMUEBLE */
+
+.migas-pan {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 22px;
+    color: #d7d0cc;
+    font-size: 14px;
+}
+
+.migas-pan a {
+    transition: color 0.2s ease;
+}
+
+.migas-pan a:hover {
+    color: var(--color-secundario);
+}
+
+.detalle-seccion {
+    background: var(--color-claro);
+}
+
+/* GALERÍA */
+
+.galeria-inmueble {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 180px;
+    gap: 18px;
+    margin-bottom: 36px;
+}
+
+.galeria-principal {
+    overflow: hidden;
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.galeria-principal img {
+    height: 520px;
+    object-fit: cover;
+}
+
+.galeria-miniaturas {
+    display: grid;
+    gap: 14px;
+}
+
+.miniatura {
+    padding: 0;
+    overflow: hidden;
+    border: 3px solid transparent;
+    border-radius: 12px;
+    background: none;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.miniatura:hover,
+.miniatura.activa {
+    border-color: var(--color-principal);
+}
+
+.miniatura img {
+    height: 156px;
+    object-fit: cover;
+}
+
+/* LAYOUT PRINCIPAL */
+
+.detalle-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 330px;
+    gap: 32px;
+    align-items: start;
+}
+
+.detalle-contenido {
+    display: grid;
+    gap: 24px;
+}
+
+.detalle-bloque {
+    padding: 30px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.detalle-bloque h2 {
+    color: var(--color-oscuro);
+    font-size: 27px;
+    margin-bottom: 16px;
+}
+
+.detalle-bloque p + p {
+    margin-top: 14px;
+}
+
+.detalle-cabecera {
+    display: flex;
+    justify-content: space-between;
+    gap: 28px;
+    align-items: flex-start;
+}
+
+.detalle-cabecera h2 {
+    margin-bottom: 4px;
+}
+
+.detalle-ubicacion {
+    color: #6d6865;
+}
+
+.detalle-precio {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.detalle-precio span {
+    display: block;
+    color: #777;
+    font-size: 13px;
+}
+
+.detalle-precio strong {
+    display: block;
+    color: var(--color-principal);
+    font-size: 26px;
+}
+
+/* CARACTERÍSTICAS */
+
+.detalle-caracteristicas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.caracteristica-detalle {
+    padding: 16px;
+    text-align: center;
+    background: var(--color-claro);
+    border-radius: 12px;
+}
+
+.caracteristica-detalle strong {
+    display: block;
+    color: var(--color-oscuro);
+    font-size: 20px;
+}
+
+.caracteristica-detalle span {
+    color: #6f6966;
+    font-size: 13px;
+}
+
+/* UBICACIÓN */
+
+.datos-ubicacion {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.datos-ubicacion div {
+    padding: 15px;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+}
+
+.datos-ubicacion span,
+.resumen-dato span {
+    display: block;
+    color: #777;
+    font-size: 13px;
+}
+
+.datos-ubicacion strong,
+.resumen-dato strong {
+    color: var(--color-oscuro);
+}
+
+.nota-ubicacion {
+    margin-top: 18px;
+    padding: 13px 15px;
+    background: rgba(255, 222, 89, 0.25);
+    border-radius: 10px;
+    color: var(--color-oscuro);
+    font-size: 14px;
+}
+
+/* SERVICIOS Y AMENIDADES */
+
+.detalle-columnas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 34px;
+}
+
+.lista-detalle {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+}
+
+.lista-detalle li {
+    position: relative;
+    padding-left: 25px;
+}
+
+.lista-detalle li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--color-principal);
+    font-weight: 800;
+}
+
+/* VENDEDORES */
+
+.titulo-con-accion {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.etiqueta-oscura {
+    color: var(--color-principal);
+}
+
+.texto-intro {
+    margin-bottom: 22px;
+}
+
+.vendedores-grid {
+    display: grid;
+    gap: 18px;
+}
+
+.vendedor-card {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid var(--color-borde);
+    border-radius: 14px;
+}
+
+.vendedor-card > img {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+    object-fit: cover;
+}
+
+.vendedor-card-contenido {
+    padding: 20px;
+}
+
+.vendedor-card h3 {
+    color: var(--color-oscuro);
+    font-size: 21px;
+    margin-bottom: 5px;
+}
+
+.vendedor-zona {
+    margin-bottom: 14px;
+    color: #6d6865;
+    font-size: 14px;
+}
+
+.vendedor-datos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 18px;
+    color: var(--color-oscuro);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.vendedor-datos span:last-child {
+    color: var(--color-principal);
+}
+
+.vendedor-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.aviso-visitante {
+    margin-top: 20px;
+    padding: 13px 15px;
+    background: var(--color-claro);
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+/* COMENTARIOS */
+
+.calificacion-general {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--color-secundario);
+    color: var(--color-oscuro);
+    font-weight: 800;
+}
+
+.comentarios-lista {
+    display: grid;
+    gap: 16px;
+}
+
+.comentario {
+    padding: 20px;
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+}
+
+.comentario-cabecera {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+.comentario-cabecera strong,
+.comentario-cabecera span {
+    display: block;
+}
+
+.comentario-cabecera strong {
+    color: var(--color-oscuro);
+}
+
+.comentario-cabecera div > span {
+    color: #777;
+    font-size: 12px;
+}
+
+.comentario-estrellas {
+    color: var(--color-principal);
+    letter-spacing: 2px;
+}
+
+/* RESUMEN LATERAL */
+
+.detalle-resumen {
+    position: sticky;
+    top: 120px;
+}
+
+.detalle-resumen-card {
+    padding: 28px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.estado-estatico {
+    position: static;
+    display: inline-block;
+    margin-bottom: 18px;
+}
+
+.detalle-resumen-card h2 {
+    color: var(--color-oscuro);
+    font-size: 25px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.detalle-resumen-card > p {
+    margin-bottom: 22px;
+}
+
+.detalle-resumen-card .btn + .btn {
+    margin-top: 10px;
+}
+
+.resumen-separador {
+    height: 1px;
+    margin: 24px 0;
+    background: var(--color-borde);
+}
+
+.resumen-dato {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.resumen-dato:last-child {
+    border-bottom: none;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+    .galeria-inmueble {
+        grid-template-columns: 1fr;
+    }
+
+    .galeria-miniaturas {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .miniatura img {
+        height: 130px;
+    }
+
+    .detalle-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .detalle-resumen {
+        position: static;
+    }
+}
+
+@media (max-width: 700px) {
+    .galeria-principal img {
+        height: 380px;
+    }
+
+    .detalle-cabecera,
+    .titulo-con-accion,
+    .comentario-cabecera {
+        flex-direction: column;
+    }
+
+    .detalle-precio {
+        text-align: left;
+    }
+
+    .detalle-caracteristicas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .datos-ubicacion,
+    .detalle-columnas {
+        grid-template-columns: 1fr;
+    }
+
+    .vendedor-card {
+        grid-template-columns: 1fr;
+    }
+
+    .vendedor-card > img {
+        height: 240px;
+    }
+}
+
+@media (max-width: 480px) {
+    .galeria-miniaturas {
+        grid-template-columns: 1fr;
+    }
+
+    .miniatura img {
+        height: 180px;
+    }
+
+    .detalle-bloque,
+    .detalle-resumen-card {
+        padding: 22px;
+    }
+
+    .detalle-caracteristicas {
+        grid-template-columns: 1fr;
+    }
+
+    .vendedor-acciones {
+        flex-direction: column;
+    }
+
+    .vendedor-acciones .btn {
+        width: 100%;
+    }
+}
+
+/* PERFIL PÚBLICO DEL VENDEDOR */
+
+.perfil-vendedor-seccion {
+    background: var(--color-claro);
+}
+
+.perfil-vendedor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 32px;
+    align-items: start;
+}
+
+.perfil-vendedor-contenido {
+    display: grid;
+    gap: 24px;
+}
+
+/* INFORMACIÓN PRINCIPAL */
+
+.perfil-principal {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    overflow: hidden;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.perfil-foto {
+    min-height: 370px;
+}
+
+.perfil-foto img {
+    height: 100%;
+    object-fit: cover;
+}
+
+.perfil-informacion {
+    padding: 34px;
+}
+
+.perfil-informacion h2 {
+    color: var(--color-oscuro);
+    font-size: 34px;
+    line-height: 1.15;
+    margin-bottom: 4px;
+}
+
+.perfil-zona {
+    color: #6d6865;
+    margin-bottom: 16px;
+}
+
+.perfil-calificacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+}
+
+.estrellas {
+    color: var(--color-principal);
+    letter-spacing: 2px;
+}
+
+.perfil-calificacion strong {
+    color: var(--color-oscuro);
+    font-size: 20px;
+}
+
+.perfil-calificacion small {
+    color: #777;
+}
+
+.perfil-descripcion {
+    margin-bottom: 26px;
+}
+
+.perfil-datos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.perfil-dato {
+    padding: 16px;
+    text-align: center;
+    background: var(--color-claro);
+    border-radius: 12px;
+}
+
+.perfil-dato strong {
+    display: block;
+    color: var(--color-oscuro);
+    font-size: 21px;
+}
+
+.perfil-dato span {
+    color: #6f6966;
+    font-size: 13px;
+}
+
+/* INMUEBLES */
+
+.perfil-inmuebles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-top: 22px;
+}
+
+.enlace-seccion {
+    color: var(--color-principal);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.enlace-seccion:hover {
+    text-decoration: underline;
+}
+
+/* RESUMEN LATERAL */
+
+.perfil-vendedor-resumen {
+    position: sticky;
+    top: 120px;
+}
+
+.perfil-resumen-card {
+    padding: 28px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.perfil-resumen-card h2 {
+    color: var(--color-oscuro);
+    font-size: 25px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.perfil-resumen-card > p {
+    margin-bottom: 22px;
+}
+
+.perfil-resumen-card .btn + .btn {
+    margin-top: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+    .perfil-vendedor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-vendedor-resumen {
+        position: static;
+    }
+}
+
+@media (max-width: 760px) {
+    .perfil-principal {
+        grid-template-columns: 1fr;
+    }
+
+    .perfil-foto {
+        height: 340px;
+        min-height: auto;
+    }
+
+    .perfil-inmuebles-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .perfil-informacion {
+        padding: 24px;
+    }
+
+    .perfil-informacion h2 {
+        font-size: 28px;
+    }
+
+    .perfil-datos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* CONTACTO */
+
+.contacto-seccion {
+    background: var(--color-claro);
+}
+
+.contacto-layout {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+/* INFORMACIÓN LATERAL */
+
+.contacto-informacion {
+    position: sticky;
+    top: 120px;
+}
+
+.contacto-info-card {
+    padding: 30px;
+    background: var(--color-oscuro);
+    color: var(--color-blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+}
+
+.contacto-info-card h2 {
+    font-size: 27px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+}
+
+.contacto-info-card > p {
+    color: #e8e1dd;
+}
+
+.contacto-lista {
+    display: grid;
+    gap: 18px;
+    margin-top: 28px;
+}
+
+.contacto-item {
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.contacto-item:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.contacto-item span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--color-secundario);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.contacto-item a,
+.contacto-item strong {
+    color: var(--color-blanco);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.contacto-item a:hover {
+    color: var(--color-secundario);
+}
+
+.contacto-acceso {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid rgba(255, 222, 89, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 222, 89, 0.08);
+}
+
+.contacto-acceso h3 {
+    margin-bottom: 6px;
+    font-size: 20px;
+}
+
+.contacto-acceso p {
+    margin-bottom: 16px;
+    color: #e8e1dd;
+    font-size: 14px;
+}
+
+/* FORMULARIO */
+
+.contacto-form-card {
+    width: 100%;
+}
+
+.contacto-form-card .form-card-encabezado h2 {
+    font-size: 30px;
+}
+
+/* OPCIONES INFERIORES */
+
+.contacto-opciones-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.contacto-opcion {
+    padding: 28px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contacto-opcion:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 35px rgba(33, 29, 29, 0.15);
+}
+
+.contacto-opcion > span {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 20px;
+    border-radius: 50%;
+    background: var(--color-secundario);
+    color: var(--color-oscuro);
+    font-weight: 800;
+}
+
+.contacto-opcion h3 {
+    color: var(--color-oscuro);
+    font-size: 21px;
+    margin-bottom: 8px;
+}
+
+.contacto-opcion p {
+    margin-bottom: 16px;
+}
+
+.contacto-opcion a {
+    color: var(--color-principal);
+    font-weight: 700;
+}
+
+.contacto-opcion a:hover {
+    text-decoration: underline;
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 900px) {
+    .contacto-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .contacto-informacion {
+        position: static;
+    }
+
+    .contacto-opciones-grid {
+        grid-template-columns: 1fr;
+    }
+
     .header-contenido {
         flex-direction: column;
         padding: 18px 0;
@@ -492,4 +1914,36 @@ button {
     .registro-card h2 {
         font-size: 28px;
     }
+}
+
+/* ── Mensajes de formulario ───────────────────────────────────────────────── */
+
+.mensaje {
+    display: block;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.mensaje-error {
+    color: #c0392b;
+}
+
+.mensaje-error-general {
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    background: rgba(192, 57, 43, 0.08);
+    border: 1px solid rgba(192, 57, 43, 0.25);
+    color: #c0392b;
+}
+
+.mensaje-exito {
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    background: rgba(39, 174, 96, 0.08);
+    border: 1px solid rgba(39, 174, 96, 0.25);
+    color: #1e8449;
 }
