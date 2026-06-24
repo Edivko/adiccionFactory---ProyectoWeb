@@ -27,8 +27,8 @@ include '../public/includes/header.php';
                 <tbody>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px 10px;">1</td>
-                        <td style="padding: 15px 10px;">Alan</td>
-                        <td style="padding: 15px 10px;">alan@email.com</td>
+                        <td style="padding: 15px 10px;">usuario</td>
+                        <td style="padding: 15px 10px;">usuario@email.com</td>
                         <td style="padding: 15px 10px; color: green; font-weight: bold;">Activo</td>
                         <td style="padding: 15px 10px; display: flex; gap: 5px;">
                             <button class="btn btn-claro" style="padding: 5px 10px; font-size: 14px;">Suspender</button>
@@ -37,8 +37,8 @@ include '../public/includes/header.php';
                     </tr>
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 15px 10px;">2</td>
-                        <td style="padding: 15px 10px;">Héctor Lenin</td>
-                        <td style="padding: 15px 10px;">hector@email.com</td>
+                        <td style="padding: 15px 10px;">usuario 2</td>
+                        <td style="padding: 15px 10px;">usuario2@email.com</td>
                         <td style="padding: 15px 10px; color: green; font-weight: bold;">Activo</td>
                         <td style="padding: 15px 10px; display: flex; gap: 5px;">
                             <button class="btn btn-claro" style="padding: 5px 10px; font-size: 14px;">Suspender</button>

@@ -11,22 +11,25 @@ if (!isset($tituloPagina)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $tituloPagina; ?></title>
 
-    <link rel="stylesheet" href="/adiccionFactory/public/recursos/css/estilos.css">
+    <!-- Usando ../ para que sea compatible con todas las compus -->
+    <link rel="stylesheet" href="../public/recursos/css/estilos.css">
 </head>
 <body>
 
 <header class="header">
     <div class="contenedor header-contenido">
 
-        <a href="index.php" class="logo">
-            <img src="/adiccionFactory/public/recursos/img/logo.png" alt="Adicción Factory Inmobiliaria">
+        <!-- Usando ../ para la imagen del logo -->
+        <a href="../comprador/index.php" class="logo">
+            <img src="../public/recursos/img/logo.png" alt="Adicción Factory Inmobiliaria">
         </a>
 
         <nav class="nav">
-            <a href="index.php">Inicio</a>
-            <a href="catalogo.php">Catálogo</a>
-            <a href="contacto.php">Contacto</a>
-            <a href="login.php" class="btn btn-secundario">Iniciar sesión</a>
+            <!-- Nota: Si estos archivos están en la raíz, también llevan ../ -->
+            <a href="../public/index.php">Inicio</a>
+            <a href="../public/catalogo.php">Catálogo</a>
+            <a href="../public/contacto.php">Contacto</a>
+            <a href="../public/login.php" class="btn btn-secundario">Iniciar sesión</a>
         </nav>
 
     </div>
