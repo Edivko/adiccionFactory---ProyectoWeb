@@ -1,34 +1,63 @@
 <?php
 declare(strict_types=1);
 
-// 1. Requerimos la conexión a la base de datos
 require_once __DIR__ . '/../config/conexion.php';
 
 $mensajeError = '';
 
-// 2. Lógica para Aprobar o Rechazar/Eliminar
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['id_vendedor'])) {
     $id_vendedor = (int)$_POST['id_vendedor'];
     $accion = $_POST['accion'];
 
     try {
         if ($accion === 'aprobar') {
-            // Actualizamos el estatus (ajusta 'estatus' al nombre de la columna real que usen para verificar)
-            mysqli_query($conexion, "UPDATE Vendedor SET estatus = 'Aprobado' WHERE id_vendedor = $id_vendedor");
+            // 1. Extraemos el id_usuario REAL directo de la tabla (infalible)
+            $queryBusqueda = mysqli_query($conexion, "SELECT id_usuario FROM Vendedor WHERE id_vendedor = $id_vendedor");
+            
+            if (!$queryBusqueda) {
+                die("🚨 ERROR MYSQL (SELECT): " . mysqli_error($conexion));
+            }
+
+            $resultado = mysqli_fetch_assoc($queryBusqueda);
+            
+            if ($resultado) {
+                $id_usuario_real = (int)$resultado['id_usuario'];
+                
+                // 2. Aprobamos al Vendedor
+                $updateVendedor = mysqli_query($conexion, "UPDATE Vendedor SET estatus = 'Aprobado' WHERE id_vendedor = $id_vendedor");
+                if (!$updateVendedor) die("🚨 ERROR MYSQL (UPDATE Vendedor): " . mysqli_error($conexion));
+                
+                // 3. Activamos obligatoriamente la cuenta de Usuario
+                $updateUsuario = mysqli_query($conexion, "UPDATE Usuario SET id_estado_cuenta = 2 WHERE id_usuario = $id_usuario_real");
+                if (!$updateUsuario) die("🚨 ERROR MYSQL (UPDATE Usuario): " . mysqli_error($conexion));
+
+            } else {
+                die("🚨 ERROR LÓGICO: No se encontró un id_usuario para el vendedor #$id_vendedor.");
+            }
+
         } elseif ($accion === 'rechazar') {
-            // Elimina al vendedor (esto NO borra su cuenta de Usuario, solo le quita el rol de Vendedor)
-            mysqli_query($conexion, "DELETE FROM Vendedor WHERE id_vendedor = $id_vendedor");
+            // Buscamos el ID real antes de destruir todo
+            $queryBusqueda = mysqli_query($conexion, "SELECT id_usuario FROM Vendedor WHERE id_vendedor = $id_vendedor");
+            if ($resultado = mysqli_fetch_assoc($queryBusqueda)) {
+                $id_usuario_real = (int)$resultado['id_usuario'];
+                
+                $delVendedor = mysqli_query($conexion, "DELETE FROM Vendedor WHERE id_vendedor = $id_vendedor");
+                if (!$delVendedor) die("🚨 ERROR MYSQL (DELETE Vendedor): " . mysqli_error($conexion));
+                
+                $delUsuario = mysqli_query($conexion, "DELETE FROM Usuario WHERE id_usuario = $id_usuario_real");
+                if (!$delUsuario) die("🚨 ERROR MYSQL (DELETE Usuario): " . mysqli_error($conexion));
+            }
         }
         
         header("Location: gestionar_vendedores.php");
         exit;
 
     } catch (mysqli_sql_exception $e) {
-        $mensajeError = "No se puede rechazar/eliminar este vendedor porque ya tiene inmuebles o información vinculada en el sistema.";
+        $mensajeError = "No se puede completar la acción por restricciones de la base de datos: " . $e->getMessage();
     }
 }
 
-// 3. Consulta maestra: Unimos Vendedor con Usuario para traer el Nombre y el Teléfono
+// Consulta maestra
 $queryVendedores = mysqli_query($conexion, "
     SELECT v.*, u.nombre, u.apellido, u.telefono 
     FROM Vendedor v 
@@ -61,7 +90,7 @@ include '../public/includes/header.php';
                     <tr style="border-bottom: 2px solid #ccc;">
                         <th style="padding: 15px 10px;">ID / Vendedor</th>
                         <th style="padding: 15px 10px;">Teléfono</th>
-                        <th style="padding: 15px 10px;">Estatus de Verificación</th>
+                        <th style="padding: 15px 10px;">Estatus</th>
                         <th style="padding: 15px 10px;">Acciones</th>
                     </tr>
                 </thead>
@@ -70,12 +99,11 @@ include '../public/includes/header.php';
                     if ($queryVendedores && mysqli_num_rows($queryVendedores) > 0): 
                         while ($vendedor = mysqli_fetch_assoc($queryVendedores)): 
                             $id_vendedor = $vendedor['id_vendedor'] ?? 0;
-                            // Juntamos nombre y apellido
+                            
                             $nombreCompleto = trim(($vendedor['nombre'] ?? '') . ' ' . ($vendedor['apellido'] ?? ''));
                             $nombreCompleto = $nombreCompleto === '' ? 'Vendedor Desconocido' : $nombreCompleto;
                             $telefono = $vendedor['telefono'] ?? 'Sin teléfono';
                             
-                            // Asumimos que hay una columna 'estatus'. Si no existe, mostrará 'Pendiente' por defecto.
                             $estatus = $vendedor['estatus'] ?? 'Pendiente';
                             $colorEstatus = ($estatus === 'Aprobado') ? 'green' : '#f39c12';
                     ?>
@@ -97,7 +125,7 @@ include '../public/includes/header.php';
                                 </form>
                                 <?php endif; ?>
 
-                                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que deseas rechazar y eliminar a este vendedor?');">
+                                <form method="POST" style="margin: 0;" onsubmit="return confirm('¿Seguro que deseas rechazar y eliminar totalmente a este vendedor del sistema?');">
                                     <input type="hidden" name="id_vendedor" value="<?php echo $id_vendedor; ?>">
                                     <input type="hidden" name="accion" value="rechazar">
                                     <button type="submit" class="btn btn-principal" style="padding: 5px 10px; font-size: 14px; cursor: pointer;">Rechazar</button>
