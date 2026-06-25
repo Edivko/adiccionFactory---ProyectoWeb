@@ -1,19 +1,131 @@
 <?php
+
+require_once __DIR__ . '/../config/conexion.php';
+
+// ─── Leer filtros (valores crudos para la consulta) ───────────────────────
+
+$busquedaRaw  = trim($_GET['busqueda']       ?? '');
+$ciudadRaw    = trim($_GET['ciudad']         ?? '');
+$categoriaRaw = trim($_GET['categoria']      ?? '');
+$precioMinRaw = trim($_GET['precio_minimo']  ?? '');
+$precioMaxRaw = trim($_GET['precio_maximo']  ?? '');
+$recamarasRaw = trim($_GET['recamaras']      ?? '');
+$banosRaw     = trim($_GET['banos']          ?? '');
+$ordenRaw     = trim($_GET['orden']          ?? '');
+
+// Valores escapados para repoblar los controles del formulario
+$busqueda     = htmlspecialchars($busquedaRaw,  ENT_QUOTES, 'UTF-8');
+$ciudad       = htmlspecialchars($ciudadRaw,    ENT_QUOTES, 'UTF-8');
+$categoria    = htmlspecialchars($categoriaRaw, ENT_QUOTES, 'UTF-8');
+$precioMinimo = htmlspecialchars($precioMinRaw, ENT_QUOTES, 'UTF-8');
+$precioMaximo = htmlspecialchars($precioMaxRaw, ENT_QUOTES, 'UTF-8');
+$recamaras    = htmlspecialchars($recamarasRaw, ENT_QUOTES, 'UTF-8');
+$banos        = htmlspecialchars($banosRaw,     ENT_QUOTES, 'UTF-8');
+$orden        = htmlspecialchars($ordenRaw,     ENT_QUOTES, 'UTF-8');
+
+// ─── Construir consulta dinámica con condiciones opcionales ───────────────
+
+// id_estado_publicacion = 3 corresponde a 'publicado' (02_datos_iniciales.sql)
+$condiciones = ['i.id_estado_publicacion = 3'];
+$tipos       = '';
+$valores     = [];
+
+if ($busquedaRaw !== '') {
+    $condiciones[] = '(i.titulo LIKE ? OR i.colonia LIKE ?)';
+    $like = '%' . $busquedaRaw . '%';
+    $tipos .= 'ss';
+    $valores[] = $like;
+    $valores[] = $like;
+}
+
+if ($ciudadRaw !== '') {
+    $condiciones[] = 'i.ciudad LIKE ?';
+    $tipos .= 's';
+    $valores[] = '%' . $ciudadRaw . '%';
+}
+
+if ($categoriaRaw !== '') {
+    $condiciones[] = 'LOWER(c.nombre_categoria) = ?';
+    $tipos .= 's';
+    $valores[] = strtolower($categoriaRaw);
+}
+
+if ($precioMinRaw !== '' && is_numeric($precioMinRaw) && (float) $precioMinRaw >= 0) {
+    $condiciones[] = 'i.precio >= ?';
+    $tipos .= 'd';
+    $valores[] = (float) $precioMinRaw;
+}
+
+if ($precioMaxRaw !== '' && is_numeric($precioMaxRaw) && (float) $precioMaxRaw >= 0) {
+    $condiciones[] = 'i.precio <= ?';
+    $tipos .= 'd';
+    $valores[] = (float) $precioMaxRaw;
+}
+
+if ($recamarasRaw !== '' && ctype_digit($recamarasRaw)) {
+    $condiciones[] = 'i.recamaras >= ?';
+    $tipos .= 'i';
+    $valores[] = (int) $recamarasRaw;
+}
+
+if ($banosRaw !== '' && ctype_digit($banosRaw)) {
+    $condiciones[] = 'i.banos >= ?';
+    $tipos .= 'd';
+    $valores[] = (float) $banosRaw;
+}
+
+// Orden controlado por código; los valores de usuario no entran en el SQL
+$sqlOrden = match ($ordenRaw) {
+    'precio-menor' => 'ORDER BY i.precio ASC',
+    'precio-mayor' => 'ORDER BY i.precio DESC',
+    default        => 'ORDER BY i.fecha_registro DESC',
+};
+
+$sql = 'SELECT
+    i.id_inmueble,
+    i.titulo,
+    i.precio,
+    i.moneda,
+    i.ciudad,
+    i.estado        AS estado_geo,
+    i.recamaras,
+    i.banos,
+    i.estacionamientos,
+    c.nombre_categoria,
+    (SELECT url_foto
+     FROM FotoInmueble
+     WHERE id_inmueble = i.id_inmueble AND principal = TRUE
+     LIMIT 1)       AS url_foto
+FROM Inmueble i
+INNER JOIN CategoriaInmueble c ON c.id_categoria = i.id_categoria
+WHERE ' . implode(' AND ', $condiciones) . ' ' . $sqlOrden;
+
+// ─── Ejecutar consulta ────────────────────────────────────────────────────
+
+$inmuebles = [];
+
+try {
+    $stmt = mysqli_prepare($conexion, $sql);
+
+    if (!empty($valores)) {
+        mysqli_stmt_bind_param($stmt, $tipos, ...$valores);
+    }
+
+    mysqli_stmt_execute($stmt);
+    $resultado = mysqli_stmt_get_result($stmt);
+    $inmuebles = mysqli_fetch_all($resultado, MYSQLI_ASSOC);
+    mysqli_stmt_close($stmt);
+
+} catch (mysqli_sql_exception $e) {
+    $inmuebles = [];
+}
+
+$total = count($inmuebles);
+
+// ─── Vista ────────────────────────────────────────────────────────────────
+
 $tituloPagina = "Catálogo de inmuebles | Adicción Factory Inmobiliaria";
 include("includes/header.php");
-
-/*
- * Estos valores permiten conservar los filtros escritos
- * después de enviar el formulario.
- */
-$busqueda = htmlspecialchars($_GET["busqueda"] ?? "");
-$ciudad = htmlspecialchars($_GET["ciudad"] ?? "");
-$categoria = htmlspecialchars($_GET["categoria"] ?? "");
-$precioMinimo = htmlspecialchars($_GET["precio_minimo"] ?? "");
-$precioMaximo = htmlspecialchars($_GET["precio_maximo"] ?? "");
-$recamaras = htmlspecialchars($_GET["recamaras"] ?? "");
-$banos = htmlspecialchars($_GET["banos"] ?? "");
-$orden = htmlspecialchars($_GET["orden"] ?? "");
 ?>
 
 <main>
@@ -76,32 +188,20 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
 
                         <select id="categoria" name="categoria">
                             <option value="">Todos</option>
-
-                            <option
-                                value="casa"
-                                <?php echo $categoria === "casa" ? "selected" : ""; ?>
-                            >
+                            <option value="casa"
+                                <?php echo $categoriaRaw === 'casa' ? 'selected' : ''; ?>>
                                 Casa
                             </option>
-
-                            <option
-                                value="departamento"
-                                <?php echo $categoria === "departamento" ? "selected" : ""; ?>
-                            >
+                            <option value="departamento"
+                                <?php echo $categoriaRaw === 'departamento' ? 'selected' : ''; ?>>
                                 Departamento
                             </option>
-
-                            <option
-                                value="terreno"
-                                <?php echo $categoria === "terreno" ? "selected" : ""; ?>
-                            >
+                            <option value="terreno"
+                                <?php echo $categoriaRaw === 'terreno' ? 'selected' : ''; ?>>
                                 Terreno
                             </option>
-
-                            <option
-                                value="residencia"
-                                <?php echo $categoria === "residencia" ? "selected" : ""; ?>
-                            >
+                            <option value="residencia"
+                                <?php echo $categoriaRaw === 'residencia' ? 'selected' : ''; ?>>
                                 Residencia
                             </option>
                         </select>
@@ -141,38 +241,22 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
 
                         <div class="campo">
                             <label for="recamaras">Recámaras</label>
-
                             <select id="recamaras" name="recamaras">
                                 <option value="">Cualquiera</option>
-                                <option value="1" <?php echo $recamaras === "1" ? "selected" : ""; ?>>
-                                    1 o más
-                                </option>
-                                <option value="2" <?php echo $recamaras === "2" ? "selected" : ""; ?>>
-                                    2 o más
-                                </option>
-                                <option value="3" <?php echo $recamaras === "3" ? "selected" : ""; ?>>
-                                    3 o más
-                                </option>
-                                <option value="4" <?php echo $recamaras === "4" ? "selected" : ""; ?>>
-                                    4 o más
-                                </option>
+                                <option value="1" <?php echo $recamarasRaw === '1' ? 'selected' : ''; ?>>1 o más</option>
+                                <option value="2" <?php echo $recamarasRaw === '2' ? 'selected' : ''; ?>>2 o más</option>
+                                <option value="3" <?php echo $recamarasRaw === '3' ? 'selected' : ''; ?>>3 o más</option>
+                                <option value="4" <?php echo $recamarasRaw === '4' ? 'selected' : ''; ?>>4 o más</option>
                             </select>
                         </div>
 
                         <div class="campo">
                             <label for="banos">Baños</label>
-
                             <select id="banos" name="banos">
                                 <option value="">Cualquiera</option>
-                                <option value="1" <?php echo $banos === "1" ? "selected" : ""; ?>>
-                                    1 o más
-                                </option>
-                                <option value="2" <?php echo $banos === "2" ? "selected" : ""; ?>>
-                                    2 o más
-                                </option>
-                                <option value="3" <?php echo $banos === "3" ? "selected" : ""; ?>>
-                                    3 o más
-                                </option>
+                                <option value="1" <?php echo $banosRaw === '1' ? 'selected' : ''; ?>>1 o más</option>
+                                <option value="2" <?php echo $banosRaw === '2' ? 'selected' : ''; ?>>2 o más</option>
+                                <option value="3" <?php echo $banosRaw === '3' ? 'selected' : ''; ?>>3 o más</option>
                             </select>
                         </div>
 
@@ -203,7 +287,13 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
 
                     <div>
                         <h2>Inmuebles encontrados</h2>
-                        <p>Mostrando 6 propiedades disponibles.</p>
+                        <p>
+                            <?php if ($total === 1): ?>
+                                Mostrando 1 propiedad disponible.
+                            <?php else: ?>
+                                Mostrando <?php echo $total; ?> propiedades disponibles.
+                            <?php endif; ?>
+                        </p>
                     </div>
 
                     <form
@@ -212,13 +302,13 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
                         class="orden-formulario"
                     >
                         <!-- Conserva los filtros al ordenar -->
-                        <input type="hidden" name="busqueda" value="<?php echo $busqueda; ?>">
-                        <input type="hidden" name="ciudad" value="<?php echo $ciudad; ?>">
-                        <input type="hidden" name="categoria" value="<?php echo $categoria; ?>">
+                        <input type="hidden" name="busqueda"      value="<?php echo $busqueda; ?>">
+                        <input type="hidden" name="ciudad"        value="<?php echo $ciudad; ?>">
+                        <input type="hidden" name="categoria"     value="<?php echo $categoria; ?>">
                         <input type="hidden" name="precio_minimo" value="<?php echo $precioMinimo; ?>">
                         <input type="hidden" name="precio_maximo" value="<?php echo $precioMaximo; ?>">
-                        <input type="hidden" name="recamaras" value="<?php echo $recamaras; ?>">
-                        <input type="hidden" name="banos" value="<?php echo $banos; ?>">
+                        <input type="hidden" name="recamaras"     value="<?php echo $recamaras; ?>">
+                        <input type="hidden" name="banos"         value="<?php echo $banos; ?>">
 
                         <label for="orden">Ordenar por</label>
 
@@ -228,18 +318,12 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
                             onchange="this.form.submit()"
                         >
                             <option value="">Más recientes</option>
-
-                            <option
-                                value="precio-menor"
-                                <?php echo $orden === "precio-menor" ? "selected" : ""; ?>
-                            >
+                            <option value="precio-menor"
+                                <?php echo $ordenRaw === 'precio-menor' ? 'selected' : ''; ?>>
                                 Menor precio
                             </option>
-
-                            <option
-                                value="precio-mayor"
-                                <?php echo $orden === "precio-mayor" ? "selected" : ""; ?>
-                            >
+                            <option value="precio-mayor"
+                                <?php echo $ordenRaw === 'precio-mayor' ? 'selected' : ''; ?>>
                                 Mayor precio
                             </option>
                         </select>
@@ -249,250 +333,92 @@ $orden = htmlspecialchars($_GET["orden"] ?? "");
 
                 <div class="catalogo-grid">
 
-                    <!-- INMUEBLE 1 -->
-                    <article class="card card-inmueble">
+                    <?php if ($total === 0): ?>
 
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa1.jpg"
-                                alt="Casa moderna en zona residencial"
-                            >
+                        <p class="catalogo-sin-resultados">
+                            No se encontraron inmuebles con los filtros seleccionados.
+                        </p>
 
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
+                    <?php else: ?>
 
-                        <div class="card-contenido">
-                            <span class="badge">Casa</span>
+                        <?php foreach ($inmuebles as $inmueble): ?>
 
-                            <h3>Casa moderna en zona residencial</h3>
+                            <?php
+                            $titulo    = htmlspecialchars($inmueble['titulo'],           ENT_QUOTES, 'UTF-8');
+                            $catNombre = htmlspecialchars($inmueble['nombre_categoria'], ENT_QUOTES, 'UTF-8');
 
-                            <p class="precio">$2,500,000 MXN</p>
+                            // Ubicación
+                            $partes = array_filter([
+                                $inmueble['ciudad']    ?? '',
+                                $inmueble['estado_geo'] ?? '',
+                            ]);
+                            $ubicacion = htmlspecialchars(implode(', ', $partes), ENT_QUOTES, 'UTF-8');
 
-                            <p class="ubicacion">
-                                Metepec, Estado de México
-                            </p>
+                            // Precio
+                            if ($inmueble['precio'] !== null) {
+                                $moneda  = htmlspecialchars($inmueble['moneda'] ?? 'MXN', ENT_QUOTES, 'UTF-8');
+                                $precioF = '$' . number_format((float) $inmueble['precio'], 2) . ' ' . $moneda;
+                            } else {
+                                $precioF = 'Precio a consultar';
+                            }
+                            ?>
 
-                            <div class="caracteristicas">
-                                <span>3 recámaras</span>
-                                <span>2 baños</span>
-                                <span>2 estacionamientos</span>
-                            </div>
+                            <article class="card card-inmueble">
 
-                            <a
-                                href="detalle-inmueble.php?id=1"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
+                                <div class="card-imagen">
 
-                    </article>
+                                    <?php if ($inmueble['url_foto'] !== null): ?>
+                                        <img
+                                            src="<?php echo htmlspecialchars($inmueble['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
+                                            alt="<?php echo $titulo; ?>"
+                                        >
+                                    <?php else: ?>
+                                        <div class="sin-foto" aria-label="Sin fotografía disponible"></div>
+                                    <?php endif; ?>
 
-                    <!-- INMUEBLE 2 -->
-                    <article class="card card-inmueble">
+                                    <span class="estado-inmueble">Disponible</span>
+                                </div>
 
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa2.jpg"
-                                alt="Departamento céntrico con amenidades"
-                            >
+                                <div class="card-contenido">
+                                    <span class="badge"><?php echo $catNombre; ?></span>
 
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
+                                    <h3><?php echo $titulo; ?></h3>
 
-                        <div class="card-contenido">
-                            <span class="badge">Departamento</span>
+                                    <p class="precio"><?php echo $precioF; ?></p>
 
-                            <h3>Departamento céntrico con amenidades</h3>
+                                    <?php if ($ubicacion !== ''): ?>
+                                        <p class="ubicacion"><?php echo $ubicacion; ?></p>
+                                    <?php endif; ?>
 
-                            <p class="precio">$1,850,000 MXN</p>
+                                    <div class="caracteristicas">
+                                        <?php if ($inmueble['recamaras'] !== null): ?>
+                                            <span><?php echo (int) $inmueble['recamaras']; ?> recámaras</span>
+                                        <?php endif; ?>
 
-                            <p class="ubicacion">
-                                Toluca, Estado de México
-                            </p>
+                                        <?php if ($inmueble['banos'] !== null): ?>
+                                            <span><?php echo (float) $inmueble['banos']; ?> baños</span>
+                                        <?php endif; ?>
 
-                            <div class="caracteristicas">
-                                <span>2 recámaras</span>
-                                <span>1.5 baños</span>
-                                <span>1 estacionamiento</span>
-                            </div>
+                                        <?php if ($inmueble['estacionamientos'] !== null): ?>
+                                            <span><?php echo (int) $inmueble['estacionamientos']; ?> estacionamientos</span>
+                                        <?php endif; ?>
+                                    </div>
 
-                            <a
-                                href="detalle-inmueble.php?id=2"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
+                                    <a
+                                        href="detalle-inmueble.php?id=<?php echo (int) $inmueble['id_inmueble']; ?>"
+                                        class="btn btn-secundario btn-completo"
+                                    >
+                                        Ver detalle
+                                    </a>
+                                </div>
 
-                    </article>
+                            </article>
 
-                    <!-- INMUEBLE 3 -->
-                    <article class="card card-inmueble">
+                        <?php endforeach; ?>
 
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa3.jpg"
-                                alt="Residencia amplia con jardín"
-                            >
-
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
-
-                        <div class="card-contenido">
-                            <span class="badge">Residencia</span>
-
-                            <h3>Residencia amplia con jardín</h3>
-
-                            <p class="precio">$4,200,000 MXN</p>
-
-                            <p class="ubicacion">
-                                Santa Fe, Ciudad de México
-                            </p>
-
-                            <div class="caracteristicas">
-                                <span>4 recámaras</span>
-                                <span>3 baños</span>
-                                <span>3 estacionamientos</span>
-                            </div>
-
-                            <a
-                                href="detalle-inmueble.php?id=3"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
-
-                    </article>
-
-                    <!-- INMUEBLE 4 -->
-                    <article class="card card-inmueble">
-
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa1.jpg"
-                                alt="Casa familiar cerca del centro"
-                            >
-
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
-
-                        <div class="card-contenido">
-                            <span class="badge">Casa</span>
-
-                            <h3>Casa familiar cerca del centro</h3>
-
-                            <p class="precio">$2,150,000 MXN</p>
-
-                            <p class="ubicacion">
-                                Lerma, Estado de México
-                            </p>
-
-                            <div class="caracteristicas">
-                                <span>3 recámaras</span>
-                                <span>2.5 baños</span>
-                                <span>2 estacionamientos</span>
-                            </div>
-
-                            <a
-                                href="detalle-inmueble.php?id=4"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
-
-                    </article>
-
-                    <!-- INMUEBLE 5 -->
-                    <article class="card card-inmueble">
-
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa2.jpg"
-                                alt="Departamento moderno en zona comercial"
-                            >
-
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
-
-                        <div class="card-contenido">
-                            <span class="badge">Departamento</span>
-
-                            <h3>Departamento moderno en zona comercial</h3>
-
-                            <p class="precio">$1,620,000 MXN</p>
-
-                            <p class="ubicacion">
-                                Naucalpan, Estado de México
-                            </p>
-
-                            <div class="caracteristicas">
-                                <span>2 recámaras</span>
-                                <span>2 baños</span>
-                                <span>1 estacionamiento</span>
-                            </div>
-
-                            <a
-                                href="detalle-inmueble.php?id=5"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
-
-                    </article>
-
-                    <!-- INMUEBLE 6 -->
-                    <article class="card card-inmueble">
-
-                        <div class="card-imagen">
-                            <img
-                                src="recursos/img/casa3.jpg"
-                                alt="Residencia con terraza y jardín"
-                            >
-
-                            <span class="estado-inmueble">Disponible</span>
-                        </div>
-
-                        <div class="card-contenido">
-                            <span class="badge">Residencia</span>
-
-                            <h3>Residencia con terraza y jardín</h3>
-
-                            <p class="precio">$5,100,000 MXN</p>
-
-                            <p class="ubicacion">
-                                Interlomas, Estado de México
-                            </p>
-
-                            <div class="caracteristicas">
-                                <span>4 recámaras</span>
-                                <span>3.5 baños</span>
-                                <span>3 estacionamientos</span>
-                            </div>
-
-                            <a
-                                href="detalle-inmueble.php?id=6"
-                                class="btn btn-secundario btn-completo"
-                            >
-                                Ver detalle
-                            </a>
-                        </div>
-
-                    </article>
+                    <?php endif; ?>
 
                 </div>
-
-                <!-- PAGINACIÓN -->
-                <nav class="paginacion" aria-label="Paginación del catálogo">
-                    <a href="#" class="pagina desactivada">Anterior</a>
-                    <a href="#" class="pagina activa">1</a>
-                    <a href="#" class="pagina">2</a>
-                    <a href="#" class="pagina">3</a>
-                    <a href="#" class="pagina">Siguiente</a>
-                </nav>
 
             </div>
 

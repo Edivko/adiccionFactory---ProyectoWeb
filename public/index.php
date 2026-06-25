@@ -1,4 +1,41 @@
 <?php
+
+require_once __DIR__ . '/../config/conexion.php';
+
+// ─── Inmuebles destacados (máximo 3, solo publicados) ─────────────────────────
+
+$inmuebles = [];
+
+try {
+    $stmt = mysqli_prepare($conexion, '
+        SELECT
+            i.id_inmueble,
+            i.titulo,
+            i.precio,
+            i.moneda,
+            i.ciudad,
+            i.estado         AS estado_geo,
+            i.recamaras,
+            i.banos,
+            i.estacionamientos,
+            c.nombre_categoria,
+            (SELECT url_foto
+             FROM FotoInmueble
+             WHERE id_inmueble = i.id_inmueble AND principal = TRUE
+             LIMIT 1)        AS url_foto
+        FROM Inmueble i
+        INNER JOIN CategoriaInmueble c ON c.id_categoria = i.id_categoria
+        WHERE i.id_estado_publicacion = 3
+        ORDER BY COALESCE(i.fecha_publicacion, i.fecha_registro) DESC
+        LIMIT 3
+    ');
+    mysqli_stmt_execute($stmt);
+    $inmuebles = mysqli_fetch_all(mysqli_stmt_get_result($stmt), MYSQLI_ASSOC);
+    mysqli_stmt_close($stmt);
+} catch (mysqli_sql_exception $e) {
+    $inmuebles = [];
+}
+
 $tituloPagina = "Inicio | Adicción Factory Inmobiliaria";
 include("includes/header.php");
 ?>
@@ -31,10 +68,10 @@ include("includes/header.php");
                 <form action="catalogo.php" method="GET" class="formulario">
                     <div>
                         <label for="ciudad">Ciudad</label>
-                        <input 
-                            type="text" 
-                            id="ciudad" 
-                            name="ciudad" 
+                        <input
+                            type="text"
+                            id="ciudad"
+                            name="ciudad"
                             placeholder="Ej. CDMX"
                         >
                     </div>
@@ -51,10 +88,10 @@ include("includes/header.php");
 
                     <div>
                         <label for="precio_max">Precio máximo</label>
-                        <input 
-                            type="number" 
-                            id="precio_max" 
-                            name="precio_max" 
+                        <input
+                            type="number"
+                            id="precio_max"
+                            name="precio_max"
                             placeholder="Ej. 2500000"
                         >
                     </div>
@@ -77,90 +114,84 @@ include("includes/header.php");
                 <p>Consulta algunas propiedades disponibles en la plataforma.</p>
             </div>
 
-            <div class="grid-3">
+            <?php if (empty($inmuebles)): ?>
 
-                <article class="card card-inmueble">
-                    <img 
-                        src="recursos/img/casa1.jpg" 
-                        alt="Casa moderna en venta"
-                    >
+                <p class="catalogo-sin-resultados">
+                    Aún no hay propiedades publicadas.
+                    <a href="catalogo.php">Visita el catálogo</a> cuando haya disponibilidad.
+                </p>
 
-                    <div class="card-contenido">
-                        <span class="badge">Casa</span>
-                        <h3>Casa moderna en zona residencial</h3>
-                        <p class="precio">$2,500,000 MXN</p>
-                        <p class="ubicacion">Metepec, Estado de México</p>
+            <?php else: ?>
 
-                        <div class="caracteristicas">
-                            <span>3 recámaras</span>
-                            <span>2 baños</span>
-                            <span>2 estacionamientos</span>
-                        </div>
+                <div class="grid-3">
 
-                        <a 
-                            href="detalle-inmueble.php?id=1" 
-                            class="btn btn-secundario btn-completo"
-                        >
-                            Ver detalle
-                        </a>
-                    </div>
-                </article>
+                    <?php foreach ($inmuebles as $inm): ?>
+                        <?php
+                        $titulo  = htmlspecialchars($inm['titulo'],           ENT_QUOTES, 'UTF-8');
+                        $cat     = htmlspecialchars($inm['nombre_categoria'], ENT_QUOTES, 'UTF-8');
+                        $partes  = array_filter([
+                            $inm['ciudad']     ?? '',
+                            $inm['estado_geo'] ?? '',
+                        ]);
+                        $ubicacion = htmlspecialchars(implode(', ', $partes), ENT_QUOTES, 'UTF-8');
+                        $precio  = $inm['precio'] !== null
+                            ? '$' . number_format((float) $inm['precio'], 2)
+                              . ' ' . htmlspecialchars($inm['moneda'] ?? 'MXN', ENT_QUOTES, 'UTF-8')
+                            : 'Precio a consultar';
+                        $idInm   = (int) $inm['id_inmueble'];
+                        ?>
 
-                <article class="card card-inmueble">
-                    <img 
-                        src="recursos/img/casa2.jpg" 
-                        alt="Departamento en venta"
-                    >
+                        <article class="card card-inmueble">
 
-                    <div class="card-contenido">
-                        <span class="badge">Departamento</span>
-                        <h3>Departamento céntrico con amenidades</h3>
-                        <p class="precio">$1,850,000 MXN</p>
-                        <p class="ubicacion">Toluca, Estado de México</p>
+                            <?php if ($inm['url_foto'] !== null): ?>
+                                <img
+                                    src="<?php echo htmlspecialchars($inm['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
+                                    alt="<?php echo $titulo; ?>"
+                                >
+                            <?php else: ?>
+                                <div class="sin-foto" aria-label="Sin fotografía disponible"></div>
+                            <?php endif; ?>
 
-                        <div class="caracteristicas">
-                            <span>2 recámaras</span>
-                            <span>1.5 baños</span>
-                            <span>1 estacionamiento</span>
-                        </div>
+                            <div class="card-contenido">
+                                <span class="badge"><?php echo $cat; ?></span>
 
-                        <a 
-                            href="detalle-inmueble.php?id=2" 
-                            class="btn btn-secundario btn-completo"
-                        >
-                            Ver detalle
-                        </a>
-                    </div>
-                </article>
+                                <h3><?php echo $titulo; ?></h3>
 
-                <article class="card card-inmueble">
-                    <img 
-                        src="recursos/img/casa3.jpeg" 
-                        alt="Residencia en venta"
-                    >
+                                <p class="precio"><?php echo $precio; ?></p>
 
-                    <div class="card-contenido">
-                        <span class="badge">Residencia</span>
-                        <h3>Residencia amplia con jardín</h3>
-                        <p class="precio">$4,200,000 MXN</p>
-                        <p class="ubicacion">Santa Fe, CDMX</p>
+                                <?php if ($ubicacion !== ''): ?>
+                                    <p class="ubicacion"><?php echo $ubicacion; ?></p>
+                                <?php endif; ?>
 
-                        <div class="caracteristicas">
-                            <span>4 recámaras</span>
-                            <span>3 baños</span>
-                            <span>3 estacionamientos</span>
-                        </div>
+                                <div class="caracteristicas">
+                                    <?php if ($inm['recamaras'] !== null): ?>
+                                        <span><?php echo (int) $inm['recamaras']; ?> recámaras</span>
+                                    <?php endif; ?>
 
-                        <a 
-                            href="detalle-inmueble.php?id=3" 
-                            class="btn btn-secundario btn-completo"
-                        >
-                            Ver detalle
-                        </a>
-                    </div>
-                </article>
+                                    <?php if ($inm['banos'] !== null): ?>
+                                        <span><?php echo (float) $inm['banos']; ?> baños</span>
+                                    <?php endif; ?>
 
-            </div>
+                                    <?php if ($inm['estacionamientos'] !== null): ?>
+                                        <span><?php echo (int) $inm['estacionamientos']; ?> estacionamientos</span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <a
+                                    href="detalle-inmueble.php?id=<?php echo $idInm; ?>"
+                                    class="btn btn-secundario btn-completo"
+                                >
+                                    Ver detalle
+                                </a>
+                            </div>
+
+                        </article>
+
+                    <?php endforeach; ?>
+
+                </div>
+
+            <?php endif; ?>
 
         </div>
     </section>
@@ -201,8 +232,8 @@ include("includes/header.php");
             </div>
 
             <article class="card">
-                <img 
-                    src="recursos/img/vendedor1.jpg" 
+                <img
+                    src="recursos/img/vendedor1.jpg"
                     alt="Vendedor inmobiliario"
                 >
 
