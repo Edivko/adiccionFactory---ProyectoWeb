@@ -125,10 +125,13 @@ try {
             i.banos,
             i.estacionamientos,
             c.nombre_categoria,
-            (SELECT url_foto
-             FROM FotoInmueble
-             WHERE id_inmueble = i.id_inmueble AND principal = TRUE
-             LIMIT 1)         AS url_foto
+            (
+                SELECT fi.url_foto
+                FROM FotoInmueble AS fi
+                WHERE fi.id_inmueble = i.id_inmueble
+                ORDER BY fi.principal DESC, fi.id_foto ASC
+                LIMIT 1
+            ) AS url_foto
         FROM Inmueble i
         INNER JOIN CategoriaInmueble c ON c.id_categoria = i.id_categoria
         WHERE i.id_estado_publicacion = 3
@@ -264,9 +267,18 @@ include __DIR__ . '/includes/header.php';
 
                     <article class="card card-inmueble">
 
-                        <?php if ($inm['url_foto'] !== null): ?>
+                        <?php if (!empty($inm['url_foto'])): ?>
+                            <?php
+                            $rutaFoto = ltrim((string) $inm['url_foto'], '/');
+
+                            if (str_starts_with($rutaFoto, 'public/')) {
+                                $rutaFoto = substr($rutaFoto, strlen('public/'));
+                            }
+
+                            $rutaFoto = '../public/' . $rutaFoto;
+                            ?>
                             <img
-                                src="<?php echo htmlspecialchars($inm['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
+                                src="<?php echo htmlspecialchars($rutaFoto, ENT_QUOTES, 'UTF-8'); ?>"
                                 alt="<?php echo $titulo; ?>"
                             >
                         <?php else: ?>

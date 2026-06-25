@@ -29,9 +29,10 @@ try {
             i.titulo             AS titulo_inmueble,
             i.ciudad,
             i.estado             AS estado_geo,
-            (SELECT url_foto
-             FROM FotoInmueble
-             WHERE id_inmueble = i.id_inmueble AND principal = TRUE
+            (SELECT fi.url_foto
+             FROM FotoInmueble AS fi
+             WHERE fi.id_inmueble = i.id_inmueble
+             ORDER BY fi.principal DESC, fi.id_foto ASC
              LIMIT 1)            AS url_foto,
             u.nombre             AS nombre_vendedor,
             u.apellido           AS apellido_vendedor
@@ -138,7 +139,14 @@ include __DIR__ . '/includes/header.php';
                 <div class="card" style="display:flex;gap:25px;align-items:flex-start;padding:20px;flex-wrap:wrap;margin-bottom:20px;">
 
                     <?php if (!empty($cita['url_foto'])): ?>
-                        <img src="<?php echo htmlspecialchars($cita['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
+                        <?php
+                        $rutaFoto = ltrim((string) $cita['url_foto'], '/');
+                        if (str_starts_with($rutaFoto, 'public/')) {
+                            $rutaFoto = substr($rutaFoto, strlen('public/'));
+                        }
+                        $rutaFoto = '../public/' . $rutaFoto;
+                        ?>
+                        <img src="<?php echo htmlspecialchars($rutaFoto, ENT_QUOTES, 'UTF-8'); ?>"
                              alt="<?php echo $titulo; ?>"
                              style="width:200px;height:150px;object-fit:cover;border-radius:10px;flex-shrink:0;">
                     <?php else: ?>
@@ -174,7 +182,7 @@ include __DIR__ . '/includes/header.php';
 
                         <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
                             <?php if ($cancelable): ?>
-                                <a href="agendar.php?id=<?php echo (int) $cita['id_inmueble']; ?>"
+                                <a href="agendar.php?id_cita=<?php echo (int) $cita['id_cita']; ?>"
                                    class="btn btn-secundario"
                                    style="padding:8px 16px;font-size:14px;">
                                     Reprogramar

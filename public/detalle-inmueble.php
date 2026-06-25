@@ -1,6 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/conexion.php';
+
+$sesionIniciada = isset(
+    $_SESSION['id_usuario'],
+    $_SESSION['id_rol'],
+    $_SESSION['id_perfil']
+);
+
+$idRolSesion = $sesionIniciada
+    ? (int) $_SESSION['id_rol']
+    : 0;
+
 
 // ─── Validar ID ──────────────────────────────────────────────────────────────
 
@@ -527,12 +544,35 @@ include('includes/header.php');
                                                     Ver perfil
                                                 </a>
 
-                                                <a
-                                                    href="login.php"
-                                                    class="btn btn-principal"
-                                                >
-                                                    Agendar cita
-                                                </a>
+                                                <?php if (!$sesionIniciada): ?>
+                                                    <a
+                                                        href="login.php"
+                                                        class="btn btn-principal"
+                                                    >
+                                                        Iniciar sesión
+                                                    </a>
+                                                <?php elseif ($idRolSesion === 1): ?>
+                                                    <a
+                                                        href="../comprador/agendar.php?id=<?php echo $idMostrar; ?>"
+                                                        class="btn btn-principal"
+                                                    >
+                                                        Agendar cita
+                                                    </a>
+                                                <?php elseif ($idRolSesion === 2): ?>
+                                                    <a
+                                                        href="../vendedor/index.php"
+                                                        class="btn btn-principal"
+                                                    >
+                                                        Ir a mi panel
+                                                    </a>
+                                                <?php elseif ($idRolSesion === 3): ?>
+                                                    <a
+                                                        href="../admin/dashboard.php"
+                                                        class="btn btn-principal"
+                                                    >
+                                                        Ir al panel administrativo
+                                                    </a>
+                                                <?php endif; ?>
                                             </div>
 
                                         </div>
@@ -551,10 +591,25 @@ include('includes/header.php');
 
                         <?php endif; ?>
 
-                        <p class="aviso-visitante">
-                            Debes iniciar sesión como comprador para seleccionar
-                            un vendedor y agendar una cita.
-                        </p>
+                        <?php if (!$sesionIniciada): ?>
+                            <p class="aviso-visitante">
+                                Debes iniciar sesión como comprador para seleccionar
+                                un vendedor y agendar una cita.
+                            </p>
+                        <?php elseif ($idRolSesion === 1): ?>
+                            <p class="aviso-visitante">
+                                Selecciona un vendedor y agenda una cita para visitar
+                                este inmueble.
+                            </p>
+                        <?php elseif ($idRolSesion === 2): ?>
+                            <p class="aviso-visitante">
+                                Estás consultando esta propiedad con una cuenta de vendedor.
+                            </p>
+                        <?php elseif ($idRolSesion === 3): ?>
+                            <p class="aviso-visitante">
+                                Estás consultando esta propiedad con una cuenta administrativa.
+                            </p>
+                        <?php endif; ?>
 
                     </article>
 
@@ -587,18 +642,52 @@ include('includes/header.php');
 
                         <h2>¿Te interesa este inmueble?</h2>
 
-                        <p>
-                            Inicia sesión como comprador para elegir un vendedor
-                            y solicitar una cita.
-                        </p>
+                        <?php if (!$sesionIniciada): ?>
+                            <p>
+                                Inicia sesión como comprador para elegir un vendedor
+                                y solicitar una cita.
+                            </p>
 
-                        <a href="login.php" class="btn btn-principal btn-completo">
-                            Iniciar sesión
-                        </a>
+                            <a href="login.php" class="btn btn-principal btn-completo">
+                                Iniciar sesión
+                            </a>
 
-                        <a href="registro-comprador.php" class="btn btn-secundario btn-completo">
-                            Crear cuenta de comprador
-                        </a>
+                            <a href="registro-comprador.php" class="btn btn-secundario btn-completo">
+                                Crear cuenta de comprador
+                            </a>
+                        <?php elseif ($idRolSesion === 1): ?>
+                            <p>
+                                Ya puedes elegir un vendedor y solicitar una cita
+                                para conocer este inmueble.
+                            </p>
+
+                            <a
+                                href="../comprador/agendar.php?id=<?php echo $idMostrar; ?>"
+                                class="btn btn-principal btn-completo"
+                            >
+                                Agendar cita
+                            </a>
+
+                            <a href="../comprador/index.php" class="btn btn-secundario btn-completo">
+                                Ir a mi panel
+                            </a>
+                        <?php elseif ($idRolSesion === 2): ?>
+                            <p>
+                                Estás viendo esta propiedad con una cuenta de vendedor.
+                            </p>
+
+                            <a href="../vendedor/index.php" class="btn btn-principal btn-completo">
+                                Ir a mi panel de vendedor
+                            </a>
+                        <?php elseif ($idRolSesion === 3): ?>
+                            <p>
+                                Estás viendo esta propiedad con una cuenta administrativa.
+                            </p>
+
+                            <a href="../admin/dashboard.php" class="btn btn-principal btn-completo">
+                                Ir al panel administrativo
+                            </a>
+                        <?php endif; ?>
 
                         <div class="resumen-separador"></div>
 

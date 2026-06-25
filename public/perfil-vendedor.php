@@ -1,6 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../config/conexion.php';
+
+$sesionIniciada = isset(
+    $_SESSION['id_usuario'],
+    $_SESSION['id_rol'],
+    $_SESSION['id_perfil']
+);
+
+$idRolSesion = $sesionIniciada
+    ? (int) $_SESSION['id_rol']
+    : 0;
+
 
 // ─── Validar ID ──────────────────────────────────────────────────────────────
 
@@ -100,23 +117,52 @@ if (!$error404) {
         $inmuebles = mysqli_fetch_all(mysqli_stmt_get_result($s), MYSQLI_ASSOC);
         mysqli_stmt_close($s);
 
-        // Comentarios visibles sobre este vendedor (id_estado_comentario = 2 = visible)
-        $s = mysqli_prepare($conexion, '
+        // Opiniones públicas: comentarios visibles y comentarios de calificaciones
+        $s = mysqli_prepare($conexion, "
             SELECT
-                com.contenido,
-                com.fecha_comentario,
-                u.nombre,
-                u.apellido
-            FROM Comentario com
-            INNER JOIN Usuario u ON u.id_usuario = com.id_usuario
-            WHERE com.id_vendedor           = ?
-              AND com.id_estado_comentario  = 2
-            ORDER BY com.fecha_comentario DESC
-            LIMIT 5
-        ');
-        mysqli_stmt_bind_param($s, 'i', $idVendedor);
+                opiniones.contenido,
+                opiniones.fecha_comentario,
+                opiniones.nombre,
+                opiniones.apellido
+            FROM (
+                SELECT
+                    com.contenido,
+                    com.fecha_comentario,
+                    u.nombre,
+                    u.apellido
+                FROM Comentario AS com
+                INNER JOIN Usuario AS u
+                    ON u.id_usuario = com.id_usuario
+                INNER JOIN EstadoComentario AS ec
+                    ON ec.id_estado_comentario = com.id_estado_comentario
+                WHERE com.id_vendedor = ?
+                  AND LOWER(ec.nombre_estado) = 'visible'
+
+                UNION ALL
+
+                SELECT
+                    cv.comentario AS contenido,
+                    cv.fecha_calificacion AS fecha_comentario,
+                    u.nombre,
+                    u.apellido
+                FROM CalificacionVendedor AS cv
+                INNER JOIN Comprador AS cp
+                    ON cp.id_comprador = cv.id_comprador
+                INNER JOIN Usuario AS u
+                    ON u.id_usuario = cp.id_usuario
+                WHERE cv.id_vendedor = ?
+                  AND cv.comentario IS NOT NULL
+                  AND TRIM(cv.comentario) <> ''
+            ) AS opiniones
+            ORDER BY opiniones.fecha_comentario DESC
+            LIMIT 10
+        ");
+        mysqli_stmt_bind_param($s, 'ii', $idVendedor, $idVendedor);
         mysqli_stmt_execute($s);
-        $comentarios = mysqli_fetch_all(mysqli_stmt_get_result($s), MYSQLI_ASSOC);
+        $comentarios = mysqli_fetch_all(
+            mysqli_stmt_get_result($s),
+            MYSQLI_ASSOC
+        );
         mysqli_stmt_close($s);
 
     } catch (mysqli_sql_exception $e) {
@@ -462,9 +508,23 @@ include('includes/header.php');
                         Ver inmuebles
                     </a>
 
-                    <a href="login.php" class="btn btn-secundario btn-completo">
-                        Iniciar sesión
-                    </a>
+                    <?php if (!$sesionIniciada): ?>
+                        <a href="login.php" class="btn btn-secundario btn-completo">
+                            Iniciar sesión
+                        </a>
+                    <?php elseif ($idRolSesion === 1): ?>
+                        <a href="../comprador/index.php" class="btn btn-secundario btn-completo">
+                            Ir a mi panel
+                        </a>
+                    <?php elseif ($idRolSesion === 2): ?>
+                        <a href="../vendedor/index.php" class="btn btn-secundario btn-completo">
+                            Ir a mi panel de vendedor
+                        </a>
+                    <?php elseif ($idRolSesion === 3): ?>
+                        <a href="../admin/dashboard.php" class="btn btn-secundario btn-completo">
+                            Ir al panel administrativo
+                        </a>
+                    <?php endif; ?>
 
                     <div class="resumen-separador"></div>
 
