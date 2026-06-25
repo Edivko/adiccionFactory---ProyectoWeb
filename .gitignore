@@ -10,3 +10,5 @@ public/recursos/uploads/vendedores/*
 Thumbs.db
 .vscode/settings.json
 CLAUDE.md
+public/recursos/uploads/inmuebles/*
+!public/recursos/uploads/inmuebles/.gitkeep
