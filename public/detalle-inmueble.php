@@ -575,7 +575,7 @@ include('includes/header.php');
                                                         href="../comprador/agendar.php?id=<?php echo $idMostrar; ?>"
                                                         class="btn btn-principal"
                                                     >
-                                                        Agendar cita
+                                                        Solicitar visita
                                                     </a>
                                                 <?php elseif ($idRolSesion === 2): ?>
                                                     <a
@@ -709,7 +709,7 @@ include('includes/header.php');
                                 href="../comprador/agendar.php?id=<?php echo $idMostrar; ?>"
                                 class="btn btn-principal btn-completo"
                             >
-                                Agendar cita
+                                Solicitar visita
                             </a>
 
                             <a href="../comprador/index.php" class="btn btn-secundario btn-completo">
