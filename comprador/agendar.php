@@ -586,30 +586,33 @@ include __DIR__ . '/includes/header.php';
 
                         <div style="margin-top: 15px;">
                             <label for="hora">
-                                Hora sugerida (09:00 – 17:00)
+                                Hora sugerida
                                 <span style="color: #e94b27;">*</span>
                             </label>
 
-                            <input
-                                type="time"
-                                id="hora"
-                                name="hora"
-                                min="09:00"
-                                max="17:00"
-                                value="<?php
-                                echo $citaReprogramar !== null
-                                    ? htmlspecialchars(
-                                        date(
-                                            'H:i',
-                                            strtotime($citaReprogramar['fecha_inicio'])
-                                        ),
-                                        ENT_QUOTES,
-                                        'UTF-8'
-                                    )
-                                    : '';
-                                ?>"
-                                required
-                            >
+                            <?php
+                            $horaActual = $citaReprogramar !== null
+                                ? date('H:i', strtotime($citaReprogramar['fecha_inicio']))
+                                : '';
+                            ?>
+                            <select id="hora" name="hora" required>
+                                <option value="">-- Elige una hora --</option>
+                                <?php
+                                for ($h = 9; $h <= 17; $h++) {
+                                    foreach ([0, 30] as $m) {
+                                        if ($h === 17 && $m === 30) {
+                                            break;
+                                        }
+                                        $slot = sprintf('%02d:%02d', $h, $m);
+                                        $sel  = $horaActual === $slot ? 'selected' : '';
+                                        $label = $h < 12
+                                            ? $slot . ' a.m.'
+                                            : ($h === 12 ? $slot . ' p.m.' : sprintf('%02d:%02d p.m.', $h - 12, $m));
+                                        echo "<option value=\"{$slot}\" {$sel}>{$label}</option>\n";
+                                    }
+                                }
+                                ?>
+                            </select>
                         </div>
 
                         <div style="margin-top: 15px;">

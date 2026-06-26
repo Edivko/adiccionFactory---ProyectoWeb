@@ -77,10 +77,11 @@ if (!$error404) {
 
 // ─── Consultas secundarias ────────────────────────────────────────────────────
 
-$fotos      = [];
-$servicios  = [];
-$amenidades = [];
-$vendedores = [];
+$fotos        = [];
+$servicios    = [];
+$amenidades   = [];
+$vendedores   = [];
+$comentarios  = [];
 
 if (!$error404) {
     try {
@@ -146,6 +147,24 @@ if (!$error404) {
         mysqli_stmt_bind_param($s, 'i', $idInmueble);
         mysqli_stmt_execute($s);
         $vendedores = mysqli_fetch_all(mysqli_stmt_get_result($s), MYSQLI_ASSOC);
+        mysqli_stmt_close($s);
+
+        // Comentarios visibles del inmueble
+        $s = mysqli_prepare($conexion, '
+            SELECT
+                co.contenido,
+                co.fecha_comentario,
+                u.nombre,
+                u.apellido
+            FROM Comentario co
+            INNER JOIN Usuario u ON u.id_usuario = co.id_usuario
+            WHERE co.id_inmueble          = ?
+              AND co.id_estado_comentario = 2
+            ORDER BY co.fecha_comentario DESC
+        ');
+        mysqli_stmt_bind_param($s, 'i', $idInmueble);
+        mysqli_stmt_execute($s);
+        $comentarios = mysqli_fetch_all(mysqli_stmt_get_result($s), MYSQLI_ASSOC);
         mysqli_stmt_close($s);
 
     } catch (mysqli_sql_exception $e) {
@@ -613,7 +632,7 @@ include('includes/header.php');
 
                     </article>
 
-                    <!-- COMENTARIOS (módulo pendiente de implementación) -->
+                    <!-- COMENTARIOS -->
                     <article class="detalle-bloque">
 
                         <div class="titulo-con-accion">
@@ -624,9 +643,34 @@ include('includes/header.php');
                         </div>
 
                         <div class="comentarios-lista">
-                            <p class="detalle-sin-datos">
-                                Todavía no hay comentarios para este inmueble.
-                            </p>
+                            <?php if (empty($comentarios)): ?>
+                                <p class="detalle-sin-datos">
+                                    Todavía no hay comentarios para este inmueble.
+                                </p>
+                            <?php else: ?>
+                                <?php foreach ($comentarios as $com): ?>
+                                    <div class="comentario-item" style="border-bottom:1px solid #eee;padding:16px 0;">
+                                        <p style="font-weight:600;margin:0 0 4px;">
+                                            <?php echo htmlspecialchars(
+                                                $com['nombre'] . ' ' . $com['apellido'],
+                                                ENT_QUOTES, 'UTF-8'
+                                            ); ?>
+                                        </p>
+                                        <p style="color:#888;font-size:13px;margin:0 0 8px;">
+                                            <?php echo htmlspecialchars(
+                                                formatearFechaEs($com['fecha_comentario']),
+                                                ENT_QUOTES, 'UTF-8'
+                                            ); ?>
+                                        </p>
+                                        <p style="margin:0;">
+                                            <?php echo htmlspecialchars(
+                                                $com['contenido'],
+                                                ENT_QUOTES, 'UTF-8'
+                                            ); ?>
+                                        </p>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
 
                     </article>

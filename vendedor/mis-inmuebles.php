@@ -130,7 +130,7 @@ include __DIR__ . '/includes/header.php';
                     <article class="card card-inmueble">
 
                         <?php if (!empty($inm['url_foto'])): ?>
-                            <img src="<?php echo htmlspecialchars($inm['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
+                            <img src="<?php echo htmlspecialchars('../public/' . $inm['url_foto'], ENT_QUOTES, 'UTF-8'); ?>"
                                  alt="<?php echo $titulo; ?>">
                         <?php else: ?>
                             <div class="sin-foto" aria-label="Sin fotografía" style="height:180px;background:#eee;display:grid;place-items:center;font-size:32px;">🏠</div>

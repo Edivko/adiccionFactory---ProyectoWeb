@@ -90,7 +90,7 @@ try {
     $stmtIns = mysqli_prepare($conexion, '
         INSERT INTO Comentario
             (id_usuario, id_cita, id_vendedor, id_inmueble, id_estado_comentario, contenido)
-        VALUES (?, ?, ?, ?, 1, ?)
+        VALUES (?, ?, ?, ?, 2, ?)
     ');
     mysqli_stmt_bind_param(
         $stmtIns,
@@ -104,7 +104,7 @@ try {
     mysqli_stmt_execute($stmtIns);
     mysqli_stmt_close($stmtIns);
 
-    $_SESSION['mensaje_exito'] = 'Comentario enviado correctamente. Será visible una vez que sea revisado por el equipo.';
+    $_SESSION['mensaje_exito'] = 'Comentario publicado correctamente.';
     header('Location: ../comprador/comentarios.php');
     exit;
 
